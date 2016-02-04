@@ -27,32 +27,62 @@ var FPApp = angular.module("FPApp",["ionic"]);
 
 FPApp.service("FPsvc",["$http","$rootScope",FPsvc]);
 
-FPApp.controller("FPCtrl",["$scope","FPsvc",FPCtrl]);
-function FPCtrl($scope,FPsvc)
-{
+FPApp.controller("FPCtrl",["$scope","$sce","$ionicLoading","$ionicListDelegate","FPsvc",FPCtrl]);
+
+function FPCtrl($scope,$sce,$ionicLoading,$ionicListDelegate,FPsvc){
+    
+    $ionicLoading.show({template: "Loading blogs..."});
+    
     $scope.blogs = [];
+    
+    $scope.params = {};
+    
     $scope.$on("FPApp.blogs",function(_,result){
         result.posts.forEach(function(b){
             $scope.blogs.push({
                 name:b.author.name,
                 avatar_URL: b.author.avatar_URL,
-                title: b.title,
+                title: $sce.trustAsHtml(b.title),
                 URL : b.URL,
-                excerpt: b.excerpt,
+                excerpt: $sce.trustAsHtml(b.excerpt),
                 featured_image : b.featured_image
             });
         });
+        
+        $scope.params.before = result.date_range.oldest;
+        $scope.$broadcast("scroll.infiniteScrollComplete");
+        $scope.$broadcast("scroll.refreshComplete");
+        $ionicLoading.hide(); 
     });
+     
+    //Infinite scroll
+    $scope.loadMore = function(){
+        FPsvc.loadBlogs($scope.params);
+    } 
     
-    FPsvc.loadBlogs();
+    $scope.reload = function(){
+        $scope.blogs =[];
+        $scope.params = {};
+        FPsvc.loadBlogs();
+    }
+    
+    $scope.show = function($index){
+        cordova.InAppBrowser.open($scope.blogs[$index].URL,'_blank','location=no');
+        console.log("show: " + $scope.blogs[$index].URL);
+    }
+    
+    $scope.share = function($index){
+        $ionicListDelegate.closeOptionButtons();
+        console.log("Share: " + $scope.blogs[$index].URL);
+    }
 }
 
 function FPsvc($http,$rootScope){
- this.loadBlogs = function(){
-    $http.get("https://public-api.wordpress.com/rest/v1/freshly-pressed/")
+ this.loadBlogs = function(params){
+    $http.get("https://public-api.wordpress.com/rest/v1/freshly-pressed/",{params:params})
          .success(function(result){
             $rootScope.$broadcast("FPApp.blogs",result);
          });
- }
+    }
 }
 
