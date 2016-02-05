@@ -45,7 +45,7 @@
                     <ion-option-button class="button-energized" ng-click="share($index)">Share</ion-option-button>
                 </ion-item>
             </ion-list>
-            <ion-infinite-scroll on-infinite="loadMore()"></ion-infinite-scroll>
+            <ion-infinite-scroll on-infinite="loadMore()" ng-if="deviceReady"></ion-infinite-scroll>
         </ion-content>
       </ion-pane>
   </body>

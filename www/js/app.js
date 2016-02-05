@@ -27,12 +27,19 @@ var FPApp = angular.module("FPApp",["ionic"]);
 
 FPApp.service("FPsvc",["$http","$rootScope",FPsvc]);
 
-FPApp.controller("FPCtrl",["$scope","$sce","$ionicLoading","$ionicListDelegate","FPsvc",FPCtrl]);
+FPApp.controller("FPCtrl",["$scope","$sce","$ionicLoading","$ionicListDelegate","$ionicPlatform","FPsvc",FPCtrl]);
 
-function FPCtrl($scope,$sce,$ionicLoading,$ionicListDelegate,FPsvc){
+function FPCtrl($scope,$sce,$ionicLoading,$ionicListDelegate,$ionicPlatform,FPsvc){
     
     $ionicLoading.show({template: "Loading blogs..."});
     
+    $scope.deviceReady = false;
+    
+    $ionicPlatform.ready(function(){
+        $scope.$apply(function(){
+            $scope.deviceReady = true;
+        });
+    });
     $scope.blogs = [];
     
     $scope.params = {};
@@ -73,7 +80,11 @@ function FPCtrl($scope,$sce,$ionicLoading,$ionicListDelegate,FPsvc){
     
     $scope.share = function($index){
         $ionicListDelegate.closeOptionButtons();
-        console.log("Share: " + $scope.blogs[$index].URL);
+        //Sharing
+        window.socialmessage.send({
+            url:$scope.blogs[$index].URL
+        });
+        //console.log("Share: " + $scope.blogs[$index].URL);
     }
 }
 
